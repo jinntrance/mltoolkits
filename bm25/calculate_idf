@@ -1,0 +1,47 @@
+#!/bin/bash
+
+if [ $# -lt 2 ] ; then
+    echo -e "Usage: calculate_idf SOURCE IDF_DESTINATION\nwords in SOURCE must be separated by space'"
+    exit 1
+fi
+
+FROM_FILE="$1"
+TMP_FILE=tmp_file
+TO_FILE=$2
+
+echo "segmenting"
+
+start=`date +%s`
+
+N=`wc -l $P | awk '{print $FROM_FILE}'`
+words=`wc -w $P | awk '{print $FROM_FILE}'`
+avg=`echo "$words/$N" | bc -l`
+
+#echo "$[`date +%s`-start]"
+
+echo "total lines: $N"
+echo "average line length is: $avg"
+
+awk '{{delete cnt}{for(i=1;i<=NF;i++)cnt[$i]=1} {for(k in cnt) total[k]+=cnt[k]}}END{for (key in total) print total[key],key}' ${FROM_FILE}  > ${TMP_FILE}
+
+#echo "$[`date +%s`-start]"
+
+#frequency and
+start=`date +%s`
+log10=`echo "l(10)" | bc -l`
+med=`echo "$N+0.5" | bc -l`
+while read -r n token; do
+    idf=`echo  "l(($med-$n)/($n+0.5))/$log10" | bc -l`
+    echo ${token} ${idf}
+done < ${TMP_FILE} >${TO_FILE}
+
+echo "the average IDF is: "
+awk '{sum+=$2}END{print sum/NR}' ${TO_FILE}
+
+echo "frequencies of term occurrences in all documents have been saved to ${TMP_FILE}"
+#rm ${TMP_FILE}
+
+end=`date +%s`
+
+echo "finished in " $[end-start] "seconds"
+
