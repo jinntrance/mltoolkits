@@ -9,22 +9,18 @@ FROM_FILE="$1"
 TMP_FILE=tmp_file
 TO_FILE=$2
 
-echo "segmenting"
-
 start=`date +%s`
 
-N=`wc -l $P | awk '{print $FROM_FILE}'`
-words=`wc -w $P | awk '{print $FROM_FILE}'`
+N=`wc -l $FROM_FILE | awk '{print $1}'`
+words=`wc -w $FROM_FILE | awk '{print $1}'`
 avg=`echo "$words/$N" | bc -l`
 
 #echo "$[`date +%s`-start]"
 
-echo "total lines: $N"
-echo "average line length is: $avg"
+echo -e "total lines: \t $N"
+echo -e "average line length: \t $avg"
 
 awk '{{delete cnt}{for(i=1;i<=NF;i++)cnt[$i]=1} {for(k in cnt) total[k]+=cnt[k]}}END{for (key in total) print total[key],key}' ${FROM_FILE}  > ${TMP_FILE}
-
-#echo "$[`date +%s`-start]"
 
 #frequency and
 start=`date +%s`
@@ -35,8 +31,7 @@ while read -r n token; do
     echo ${token} ${idf}
 done < ${TMP_FILE} >${TO_FILE}
 
-echo "the average IDF is: "
-awk '{sum+=$2}END{print sum/NR}' ${TO_FILE}
+awk '{sum+=$2}END{print "the average IDF: \t" sum/NR}' ${TO_FILE}
 
 echo "frequencies of term occurrences in all documents have been saved to ${TMP_FILE}"
 #rm ${TMP_FILE}
